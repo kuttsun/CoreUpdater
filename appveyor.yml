@@ -1,0 +1,13 @@
+image: Visual Studio 2017
+configuration: Release
+before_build:
+  - appveyor-retry dotnet restore
+build_script:
+  - dotnet build
+test_script:
+  # OpenCover でカバレッジを計測
+  - OpenCover.bat CoreUpdater.Tests
+  # Codecov へカバレッジ結果を渡す
+  - "SET PATH=C:\\Python34;C:\\Python34\\Scripts;%PATH%"
+  - pip install codecov
+  - codecov -f "OpenCover.xml"
