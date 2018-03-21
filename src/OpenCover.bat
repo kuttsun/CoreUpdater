@@ -1,4 +1,6 @@
-﻿set PROJECT=%1
+cd %~dp0
+
+set PROJECT=%1
 
 set OPENCOVER="%USERPROFILE%\.nuget\packages\opencover\4.6.519\tools\OpenCover.Console.exe"
 

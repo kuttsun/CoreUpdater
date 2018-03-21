@@ -1,4 +1,6 @@
-﻿set REPORTGEN="%USERPROFILE%\.nuget\packages\ReportGenerator\3.1.2\tools\ReportGenerator.exe"
+cd %~dp0
+
+set REPORTGEN="%USERPROFILE%\.nuget\packages\ReportGenerator\3.1.2\tools\ReportGenerator.exe"
 
 rem OpenCover output
 set OUTPUT="OpenCover.xml"

@@ -1,0 +1,1 @@
+call OpenCover.bat CoreUpdater.Tests
