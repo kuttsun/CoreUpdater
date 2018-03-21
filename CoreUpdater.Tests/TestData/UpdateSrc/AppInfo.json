@@ -1,0 +1,14 @@
+{
+  "Name": "MakePdf",
+  "Version": "1.0.0",
+  "Files": [
+    {
+      "Name": "src1.txt",
+      "Hash": "8bdeed469ebb9e203abcf01af0bdd3cc4341b1338aa74af325626af4915518f8"
+    },
+    {
+      "Name": "src2.txt",
+      "Hash": "37b1ff352e39ee330b20e74a33faf62cef2d60a5920cc5d0137cbfff7f73ffae"
+    }
+  ]
+}

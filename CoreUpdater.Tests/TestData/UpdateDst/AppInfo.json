@@ -1,0 +1,14 @@
+{
+  "Name": "MakePdf",
+  "Version": "1.0.0",
+  "Files": [
+    {
+      "Name": "dst1.txt",
+      "Hash": "d25c8216af2a2bc7b4e4811f353f0fe67a99b7f39c7fa9cf68986645d12afaec"
+    },
+    {
+      "Name": "dst2.txt",
+      "Hash": "2ea69df754a72520485616d82958f99cbf0c47b9e48cd2ffcc413f975bea4584"
+    }
+  ]
+}
