@@ -82,6 +82,7 @@ namespace CoreUpdater.Updates
             catch (SystemException e)
             {
                 logger?.LogInformation(e.Message);
+                throw;
             }
         }
 
