@@ -4,6 +4,12 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <RuntimeIdentifiers>win-x64;linux-x64;osx-x64</RuntimeIdentifiers>
+    <Version>0.1.0</Version>
+    <Authors>kuttsun</Authors>
+    <PackageLicenseUrl>https://github.com/kuttsun/CoreUpdater/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/kuttsun/CoreUpdater</PackageProjectUrl>
+    <Description>A assistant tool for CoreUpdater.</Description>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
