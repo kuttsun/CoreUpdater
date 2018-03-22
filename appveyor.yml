@@ -10,4 +10,4 @@ test_script:
   # Codecov へカバレッジ結果を渡す
   - "SET PATH=C:\\Python34;C:\\Python34\\Scripts;%PATH%"
   - pip install codecov
-  - codecov -f "src\OpenCover.xml"
+  - codecov -f "OpenCover.xml"
