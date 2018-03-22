@@ -6,7 +6,9 @@ using System.Diagnostics;
 
 using Xunit;
 
-namespace CoreUpdater.Updates.Tests
+using CoreUpdater.Updates;
+
+namespace CoreUpdater.Tests.Updates
 {
     public class GitHubFixture : IDisposable
     {
@@ -57,8 +59,8 @@ namespace CoreUpdater.Updates.Tests
             mgr.Update(null, fixture.UpdateSrcDir, fixture.UpdateDstDir);
         }
 
-        [Fact(DisplayName ="Update TimeoutException")]
-        public void UpdateTest_InvalidPid()
+        [Fact]
+        public void UpdateTest_TimeoutExce()
         {
             // Get own process ID 
             var pid = Process.GetCurrentProcess().Id;
