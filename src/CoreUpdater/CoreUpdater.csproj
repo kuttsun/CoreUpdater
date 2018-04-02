@@ -3,8 +3,12 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Version>0.1.0</Version>
-    <Description />
+    <Description>A simple updater for .NET portable application (.NET Framework and .NET Core).</Description>
     <DebugType>full</DebugType>
+    <Authors>kuttsun</Authors>
+    <PackageProjectUrl>https://github.com/kuttsun/CoreUpdater</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/kuttsun/CoreUpdater/blob/master/LICENSE</PackageLicenseUrl>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>

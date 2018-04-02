@@ -14,17 +14,21 @@ namespace CoreUpdater.Console
         static int Main(string[] args)
         {
             var assembly = Assembly.GetExecutingAssembly();
-            var appName = assembly.GetName().Name;
-            var appVersion = "";
+            var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
 
-            System.Console.WriteLine($"{appName} {appVersion}");
+            var name = assembly.GetName().Name;
+            var assemblyName = Path.GetFileName(assembly.Location);
+            var assemblyVersion = assembly.GetName().Version.ToString();
+            var assemblyFileVersion = fvi.FileVersion;
+            var assemblyInformationalVersion = fvi.ProductVersion;
+
+            System.Console.WriteLine($"{name} {assemblyInformationalVersion}");
 
             // Analyze program arguments
-
             var cla = new CommandLineApplication(throwOnUnexpectedArg: false)
             {
                 // Application name
-                Name = appName,
+                Name = name,
                 Description = "Create CoreUpdaterInfo.json for CoreUpdater.",
             };
 
