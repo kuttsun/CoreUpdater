@@ -25,60 +25,37 @@ namespace CoreUpdater.Console
             {
                 // Application name
                 Name = appName,
+                Description = "Create CoreUpdaterInfo.json for CoreUpdater.",
             };
 
             cla.HelpOption("-?|-h|--help");
 
-            // Create a CoreUpdaterInfo
-            cla.Command("create", command =>
-            {
-                command.Description = "Create a file list.";
-                command.HelpOption("-?|-h|--help");
-
-                var targetDir = command.Option("-d|--dir", "Target directory", CommandOptionType.SingleValue);
-                var targetAppName = command.Option("-n|--name", "Application name. Default is assembly name", CommandOptionType.SingleValue);
-                var targetAppVersion = command.Option("-v|--version", "Application version. Default is assembly version", CommandOptionType.SingleValue);
-                var outputFilename = command.Option("-o|--output", "Output file name (Option). Default is CoreUpdaterInfo.json", CommandOptionType.SingleValue);
-
-                command.OnExecute(() =>
-                {
-                    var files = Directory.GetFiles(targetDir.Value(), "*", SearchOption.AllDirectories);
-                    var appInfo = new CoreUpdaterInfo()
-                    {
-                        Name = targetAppName.Value(),
-                        Version = targetAppVersion.Value()
-                    };
-                    appInfo.AddFileInfo(targetDir.Value(), files);
-                    appInfo.WriteFile(targetDir.Value(), outputFilename.Value() ?? "CoreUpdaterInfo.json");
-                    return 0;
-                });
-            });
-
-            // Start update
-            cla.Command("update", command =>
-            {
-                command.Description = "Start update.";
-                command.HelpOption("-?|-h|--help");
-
-                var pid = command.Option("--pid", "Process ID of target application", CommandOptionType.SingleValue);
-                var targetAppName = command.Option("-n|--name", "Application name. Default is assembly name", CommandOptionType.SingleValue);
-                var sourceDir = command.Option("-d|--dir", "Source directory of latest application", CommandOptionType.SingleValue);
-
-                command.OnExecute(() =>
-                {
-                    //UpdateManager.Update(pid.Value(), targetAppName.Value(), sourceDir.Value());
-
-                    return 0;
-                });
-            });
+            var targetDir = cla.Option("-d|--dir", "Target directory", CommandOptionType.SingleValue);
+            var targetAppName = cla.Option("-n|--name", "Application name.", CommandOptionType.SingleValue);
+            var targetAppVersion = cla.Option("-v|--version", "Application version.", CommandOptionType.SingleValue);
+            var outputFilename = cla.Option("-o|--output", "Output file name (Option). Default is CoreUpdaterInfo.json", CommandOptionType.SingleValue);
 
             // Default behavior
             cla.OnExecute(() =>
             {
-                cla.ShowHelp();
-                return 0;
+                if(targetDir.HasValue() == false || targetAppName.HasValue() == false || targetAppVersion.HasValue() == false)
+                {
+                    cla.ShowHelp();
+                    return 0;
+                }
+
+                var files = Directory.GetFiles(targetDir.Value(), "*", SearchOption.AllDirectories);
+                var appInfo = new CoreUpdaterInfo()
+                {
+                    Name = targetAppName.Value(),
+                    Version = targetAppVersion.Value()
+                };
+                appInfo.AddFileInfo(targetDir.Value(), files);
+                appInfo.WriteFile(targetDir.Value(), outputFilename.Value() ?? "CoreUpdaterInfo.json");
+                return 0;               
             });
 
+            // Execution
             try
             {
                 return cla.Execute(args);
