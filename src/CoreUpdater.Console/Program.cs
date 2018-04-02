@@ -7,7 +7,7 @@ using Microsoft.Extensions.CommandLineUtils;
 
 using CoreUpdater.Updates;
 
-namespace CoreUpdater
+namespace CoreUpdater.Console
 {
     class Program
     {
@@ -17,7 +17,7 @@ namespace CoreUpdater
             var appName = assembly.GetName().Name;
             var appVersion = "";
 
-            Console.WriteLine($"{appName} {appVersion}");
+            System.Console.WriteLine($"{appName} {appVersion}");
 
             // Analyze program arguments
 
@@ -29,7 +29,7 @@ namespace CoreUpdater
 
             cla.HelpOption("-?|-h|--help");
 
-            // Create a AppInfo
+            // Create a CoreUpdaterInfo
             cla.Command("create", command =>
             {
                 command.Description = "Create a file list.";
@@ -38,18 +38,18 @@ namespace CoreUpdater
                 var targetDir = command.Option("-d|--dir", "Target directory", CommandOptionType.SingleValue);
                 var targetAppName = command.Option("-n|--name", "Application name. Default is assembly name", CommandOptionType.SingleValue);
                 var targetAppVersion = command.Option("-v|--version", "Application version. Default is assembly version", CommandOptionType.SingleValue);
-                var outputFilename = command.Option("-o|--output", "Output file name (Option). Default is AppInfo.json", CommandOptionType.SingleValue);
+                var outputFilename = command.Option("-o|--output", "Output file name (Option). Default is CoreUpdaterInfo.json", CommandOptionType.SingleValue);
 
                 command.OnExecute(() =>
                 {
                     var files = Directory.GetFiles(targetDir.Value(), "*", SearchOption.AllDirectories);
-                    var appInfo = new AppInfo()
+                    var appInfo = new CoreUpdaterInfo()
                     {
                         Name = targetAppName.Value(),
                         Version = targetAppVersion.Value()
                     };
                     appInfo.AddFileInfo(targetDir.Value(), files);
-                    appInfo.WriteFile(targetDir.Value(), outputFilename.Value() ?? "AppInfo.json");
+                    appInfo.WriteFile(targetDir.Value(), outputFilename.Value() ?? "CoreUpdaterInfo.json");
                     return 0;
                 });
             });
@@ -85,7 +85,7 @@ namespace CoreUpdater
             }
             catch (Exception e)
             {
-                Console.Write(e.Message);
+                System.Console.Write(e.Message);
                 return 1;
             }
         }

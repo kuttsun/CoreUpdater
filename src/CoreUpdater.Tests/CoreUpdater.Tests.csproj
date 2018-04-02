@@ -20,10 +20,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="TestData\AppInfoTest.json">
+    <None Update="TestData\CoreUpdaterInfoTest.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TestData\UpdateDst\AppInfo.json">
+    <None Update="TestData\UpdateDst\CoreUpdaterInfo.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="TestData\UpdateDst\dst1.txt">
@@ -32,7 +32,7 @@
     <None Update="TestData\UpdateDst\dst2.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TestData\UpdateSrc\AppInfo.json">
+    <None Update="TestData\UpdateSrc\CoreUpdaterInfo.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="TestData\UpdateSrc\src1.txt">

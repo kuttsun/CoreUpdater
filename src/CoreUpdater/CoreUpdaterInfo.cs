@@ -10,7 +10,7 @@ using CoreUpdater.Common;
 
 namespace CoreUpdater
 {
-    public class AppInfo
+    public class CoreUpdaterInfo
     {
         public string Name { get; set; }
         public string Version { get; set; }
@@ -46,18 +46,18 @@ namespace CoreUpdater
             }
         }
 
-        public static AppInfo ReadFile(string fileName)
+        public static CoreUpdaterInfo ReadFile(string fileName)
         {
             using (FileStream fs = new FileStream(fileName, FileMode.Open, FileAccess.Read))
             using (StreamReader sr = new StreamReader(fs))
             {
-                return JsonConvert.DeserializeObject<AppInfo>(sr.ReadToEnd());
+                return JsonConvert.DeserializeObject<CoreUpdaterInfo>(sr.ReadToEnd());
             }
         }
 
-        public static AppInfo ReadString(string str)
+        public static CoreUpdaterInfo ReadString(string str)
         {
-            return JsonConvert.DeserializeObject<AppInfo>(str);
+            return JsonConvert.DeserializeObject<CoreUpdaterInfo>(str);
         }
 
         public string GetNewVersionDir()

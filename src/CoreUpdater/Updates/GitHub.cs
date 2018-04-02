@@ -32,24 +32,24 @@ namespace CoreUpdater.Updates
             this.gitHubRepository = gitHubRepository;
         }
 
-        override public async Task<AppInfo> CheckForUpdateAsync()
+        override public async Task<CoreUpdaterInfo> CheckForUpdateAsync()
         {
             var tag = await GetLatestReleaseTagAsync();
 
-            var jsonUrl = GetAssetUrl(tag, AppInfoFileName);
+            var jsonUrl = GetAssetUrl(tag, CoreUpdaterInfoFileName);
 
             return await CheckForUpdateAsync(jsonUrl);
         }
 
-        async Task<AppInfo> CheckForUpdateAsync(string jsonUrl)
+        async Task<CoreUpdaterInfo> CheckForUpdateAsync(string jsonUrl)
         {
             var appInfo = await DownloadJsonAsync(jsonUrl);
 
             // Deserialize
-            return AppInfo.ReadString(appInfo);
+            return CoreUpdaterInfo.ReadString(appInfo);
         }
 
-        override public async Task<AppInfo> PrepareForUpdate(string outputDir)
+        override public async Task<CoreUpdaterInfo> PrepareForUpdate(string outputDir)
         {
             return await PrepareForUpdate(outputDir, AppName + ".zip");
         }
@@ -60,10 +60,10 @@ namespace CoreUpdater.Updates
         /// <param name="zipFileName"></param>
         /// <param name="outputDir"></param>
         /// <returns></returns>
-        override public async Task<AppInfo> PrepareForUpdate(string outputDir, string zipFileName)
+        override public async Task<CoreUpdaterInfo> PrepareForUpdate(string outputDir, string zipFileName)
         {
             var tag = await GetLatestReleaseTagAsync();
-            var jsonUrl = GetAssetUrl(tag, AppInfoFileName);
+            var jsonUrl = GetAssetUrl(tag, CoreUpdaterInfoFileName);
             var zipUrl = GetAssetUrl(tag, zipFileName);
 
             var appInfo = await CheckForUpdateAsync(jsonUrl);
@@ -77,7 +77,7 @@ namespace CoreUpdater.Updates
             // Delete downloaded zip file.
             File.Delete(outputPath);
 
-            return AppInfo.ReadFile($@"{appInfo.GetNewVersionDir()}\{AppInfoFileName}");
+            return CoreUpdaterInfo.ReadFile($@"{appInfo.GetNewVersionDir()}\{CoreUpdaterInfoFileName}");
         }
 
         async Task<string> DownloadJsonAsync(string url)
@@ -125,7 +125,7 @@ namespace CoreUpdater.Updates
         }
 
         /// <summary>
-        /// e.g. https://github.com/MyName/MyApp/releases/download/1.0.0/AppInfo.json
+        /// e.g. https://github.com/MyName/MyApp/releases/download/1.0.0/CoreUpdaterInfo.json
         /// </summary>
         /// <param name="tag"></param>
         /// <param name="asset"></param>

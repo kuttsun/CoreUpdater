@@ -13,7 +13,7 @@ namespace CoreUpdater.Updates
     abstract public class UpdateManager
     {
         public string AppName { get; set; }
-        public string AppInfoFileName { get; set; } = "AppInfo.json";
+        public string CoreUpdaterInfoFileName { get; set; } = "CoreUpdaterInfo.json";
 
         protected ILogger logger;
 
@@ -26,8 +26,8 @@ namespace CoreUpdater.Updates
             AppName = Assembly.GetExecutingAssembly().GetName().Name;
         }
 
-        abstract public Task<AppInfo> CheckForUpdateAsync();
-        abstract public Task<AppInfo> PrepareForUpdate(string outputDir, string zipFileName);
+        abstract public Task<CoreUpdaterInfo> CheckForUpdateAsync();
+        abstract public Task<CoreUpdaterInfo> PrepareForUpdate(string outputDir, string zipFileName);
 
         /// <summary>
         /// Prepare for update.
@@ -36,7 +36,7 @@ namespace CoreUpdater.Updates
         /// <param name="inputPath"></param>
         /// <param name="outputPath"></param>
         /// <returns></returns>
-        abstract public Task<AppInfo> PrepareForUpdate(string outputPath);
+        abstract public Task<CoreUpdaterInfo> PrepareForUpdate(string outputPath);
 
         /// <summary>
         /// Update the application.
@@ -58,8 +58,8 @@ namespace CoreUpdater.Updates
             logger?.LogInformation($"Start updates.{Process.GetCurrentProcess().Id}");
 
             // Start updates.
-            var currentAppInfo = AppInfo.ReadFile($@"{dstDir}\{AppInfoFileName}");
-            var newAppInfo = AppInfo.ReadFile($@"{srcDir}\{AppInfoFileName}");
+            var currentAppInfo = CoreUpdaterInfo.ReadFile($@"{dstDir}\{CoreUpdaterInfoFileName}");
+            var newAppInfo = CoreUpdaterInfo.ReadFile($@"{srcDir}\{CoreUpdaterInfoFileName}");
 
             // Delete file in current dir.
             DeleteFiles(dstDir, currentAppInfo);
@@ -86,7 +86,7 @@ namespace CoreUpdater.Updates
             }
         }
 
-        void DeleteFiles(string dir, AppInfo appinfo)
+        void DeleteFiles(string dir, CoreUpdaterInfo appinfo)
         {
             // Delete file in current dir.
             foreach (var file in appinfo.Files)
@@ -94,19 +94,19 @@ namespace CoreUpdater.Updates
                 File.Delete($@"{dir}\{file.Name}");
                 logger?.LogDebug($@"[Delete] {dir}\{file.Name}");
             }
-            File.Delete($@"{dir}\{AppInfoFileName}");
-            logger?.LogDebug($@"[Delete] {dir}\{AppInfoFileName}");
+            File.Delete($@"{dir}\{CoreUpdaterInfoFileName}");
+            logger?.LogDebug($@"[Delete] {dir}\{CoreUpdaterInfoFileName}");
         }
 
-        void CopyFiles(string srcDir, string dstDir, AppInfo srcAppinfo)
+        void CopyFiles(string srcDir, string dstDir, CoreUpdaterInfo srcAppinfo)
         {
             foreach (var file in srcAppinfo.Files)
             {
                 File.Copy($@"{srcDir}\{file.Name}", $@"{dstDir}\{file.Name}", true);
                 logger?.LogDebug($@"[Copy] {srcDir}\{file.Name}");
             }
-            File.Copy($@"{srcDir}\{AppInfoFileName}", $@"{dstDir}\{AppInfoFileName}", true);
-            logger?.LogDebug($@"[Copy] {srcDir}\{AppInfoFileName}");
+            File.Copy($@"{srcDir}\{CoreUpdaterInfoFileName}", $@"{dstDir}\{CoreUpdaterInfoFileName}", true);
+            logger?.LogDebug($@"[Copy] {srcDir}\{CoreUpdaterInfoFileName}");
         }
     }
 }
