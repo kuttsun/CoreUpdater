@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 using CoreUpdater.Common;
 
-namespace CoreUpdater.Updates
+namespace CoreUpdater
 {
     public class GitHub : UpdateManager
     {
@@ -26,22 +26,21 @@ namespace CoreUpdater.Updates
         /// </summary>
         /// <param name="gitHubRepository">GitHub Repository (e.g. https://github.com/MyName/MyRepository)</param>
         /// <param name="logger"></param>
-        public GitHub(string gitHubRepository, ILogger logger = null) : base(logger)
+        public GitHub(string gitHubRepository, string coreUpdaterInfoFileName = null, ILogger logger = null) : base(coreUpdaterInfoFileName, logger)
         {
-            this.logger = logger;
             this.gitHubRepository = gitHubRepository;
         }
 
-        override public async Task<CoreUpdaterInfo> CheckForUpdateAsync()
+        public override async Task<CoreUpdaterInfo> CheckForUpdatesAsync()
         {
             var tag = await GetLatestReleaseTagAsync();
 
             var jsonUrl = GetAssetUrl(tag, CoreUpdaterInfoFileName);
 
-            return await CheckForUpdateAsync(jsonUrl);
+            return await CheckForUpdatesAsync(jsonUrl);
         }
 
-        async Task<CoreUpdaterInfo> CheckForUpdateAsync(string jsonUrl)
+        async Task<CoreUpdaterInfo> CheckForUpdatesAsync(string jsonUrl)
         {
             var appInfo = await DownloadJsonAsync(jsonUrl);
 
@@ -49,9 +48,9 @@ namespace CoreUpdater.Updates
             return CoreUpdaterInfo.ReadString(appInfo);
         }
 
-        override public async Task<CoreUpdaterInfo> PrepareForUpdate(string outputDir)
+        public override async Task<CoreUpdaterInfo> PrepareForUpdatesAsync(string outputDir)
         {
-            return await PrepareForUpdate(outputDir, AppName + ".zip");
+            return await PrepareForUpdatesAsync(outputDir, AppName + ".zip");
         }
 
         /// <summary>
@@ -60,13 +59,13 @@ namespace CoreUpdater.Updates
         /// <param name="zipFileName"></param>
         /// <param name="outputDir"></param>
         /// <returns></returns>
-        override public async Task<CoreUpdaterInfo> PrepareForUpdate(string outputDir, string zipFileName)
+        public override async Task<CoreUpdaterInfo> PrepareForUpdatesAsync(string outputDir, string zipFileName)
         {
             var tag = await GetLatestReleaseTagAsync();
             var jsonUrl = GetAssetUrl(tag, CoreUpdaterInfoFileName);
             var zipUrl = GetAssetUrl(tag, zipFileName);
 
-            var appInfo = await CheckForUpdateAsync(jsonUrl);
+            var appInfo = await CheckForUpdatesAsync(jsonUrl);
 
             var outputPath = $@"{outputDir}\{zipFileName}";
 
@@ -101,9 +100,11 @@ namespace CoreUpdater.Updates
         }
 
         /// <summary>
-        /// e.g. https://github.com/MyName/MyApp/releases/tag/1.0.0
+        /// 
         /// </summary>
-        /// <returns></returns>
+        /// <returns>
+        /// e.g. https://github.com/MyName/MyApp/releases/tag/1.0.0
+        /// </returns>
         async Task<Uri> GetLatestReleaseUrlAsync()
         {
             // This link simply redirects to the repositories latest release page,
@@ -116,7 +117,9 @@ namespace CoreUpdater.Updates
         /// <summary>
         /// e.g. https://github.com/MyName/MyApp/releases/tag/1.0.0 --> 1.0.0
         /// </summary>
-        /// <returns></returns>
+        /// <returns>
+        /// e.g. 1.0.0
+        /// </returns>
         async Task<string> GetLatestReleaseTagAsync()
         {
             var latestReleaseUrl = await GetLatestReleaseUrlAsync();
@@ -125,11 +128,13 @@ namespace CoreUpdater.Updates
         }
 
         /// <summary>
-        /// e.g. https://github.com/MyName/MyApp/releases/download/1.0.0/CoreUpdaterInfo.json
+        /// 
         /// </summary>
         /// <param name="tag"></param>
         /// <param name="asset"></param>
-        /// <returns></returns>
+        /// <returns>
+        /// e.g. https://github.com/MyName/MyApp/releases/download/1.0.0/CoreUpdaterInfo.json
+        /// </returns>
         string GetAssetUrl(string tag, string asset)
         {
             return $"{gitHubRepository}/releases/download/{tag}/{asset}";

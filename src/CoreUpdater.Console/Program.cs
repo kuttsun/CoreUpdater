@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 using Microsoft.Extensions.CommandLineUtils;
 
-using CoreUpdater.Updates;
+using CoreUpdater;
 
 namespace CoreUpdater.Console
 {

@@ -6,8 +6,6 @@ using System.Diagnostics;
 
 using Xunit;
 
-using CoreUpdater.Updates;
-
 namespace CoreUpdater.Tests.Updates
 {
     public class GitHubFixture : IDisposable
@@ -42,7 +40,7 @@ namespace CoreUpdater.Tests.Updates
         [Fact]
         public void CheckForUpdateTest()
         {
-            var appInfo = mgr.CheckForUpdateAsync().Result;
+            var appInfo = mgr.CheckForUpdatesAsync().Result;
             Assert.NotNull(appInfo);
         }
 
@@ -56,15 +54,15 @@ namespace CoreUpdater.Tests.Updates
         [Fact]
         public void UpdateTest()
         {
-            mgr.Update(null, fixture.UpdateSrcDir, fixture.UpdateDstDir);
+            mgr.Update(new string[] { "CoreUpdaterStarting", "--pid", null, "-n", "name", "-s", fixture.UpdateSrcDir, "-d", fixture.UpdateDstDir });
         }
 
         [Fact]
-        public void UpdateTest_TimeoutExce()
+        public void UpdateTest_TimeoutException()
         {
             // Get own process ID 
             var pid = Process.GetCurrentProcess().Id;
-            Assert.Throws<TimeoutException>(() => mgr.Update(pid.ToString(), fixture.UpdateSrcDir, fixture.UpdateDstDir));
+            Assert.Throws<TimeoutException>(() => mgr.Update(new string[] { "CoreUpdaterStarting", "--pid", pid.ToString(), "-n", "name", "-s", fixture.UpdateSrcDir, "-d", fixture.UpdateDstDir }));
         }
     }
 }

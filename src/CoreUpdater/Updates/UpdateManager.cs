@@ -7,10 +7,11 @@ using System.Diagnostics;
 using System.IO;
 
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.CommandLineUtils;
 
-namespace CoreUpdater.Updates
+namespace CoreUpdater
 {
-    abstract public class UpdateManager
+    abstract public class UpdateManager : IUpdateManager
     {
         public string AppName { get; set; }
         public string CoreUpdaterInfoFileName { get; set; } = "CoreUpdaterInfo.json";
@@ -19,25 +20,56 @@ namespace CoreUpdater.Updates
 
         protected bool preRelease = false;
 
-        public UpdateManager(ILogger logger)
+        readonly string coreUpdaterStartingArgument = "CoreUpdaterStarting";
+        readonly string coreUpdaterCompletedArgument = "CoreUpdaterCompleted";
+
+        public UpdateManager(string coreUpdaterInfoFileName, ILogger logger)
         {
             this.logger = logger;
+            if (coreUpdaterInfoFileName != null)
+            {
+                CoreUpdaterInfoFileName = coreUpdaterInfoFileName;
+            }
 
             AppName = Assembly.GetExecutingAssembly().GetName().Name;
         }
 
-        abstract public Task<CoreUpdaterInfo> CheckForUpdateAsync();
-        abstract public Task<CoreUpdaterInfo> PrepareForUpdate(string outputDir, string zipFileName);
+        public abstract Task<CoreUpdaterInfo> CheckForUpdatesAsync();
+        public abstract Task<CoreUpdaterInfo> PrepareForUpdatesAsync(string outputDir, string zipFileName);
 
         /// <summary>
-        /// Prepare for update.
-        /// Please call ReserveForUpdate method and close the application after this method.
+        /// Prepare for updates.
+        /// Please call StartUpdater method and close the application after this method.
         /// </summary>
         /// <param name="inputPath"></param>
         /// <param name="outputPath"></param>
         /// <returns></returns>
-        abstract public Task<CoreUpdaterInfo> PrepareForUpdate(string outputPath);
+        public abstract Task<CoreUpdaterInfo> PrepareForUpdatesAsync(string outputPath);
 
+        public void Update(string[] args)
+        {
+            // Analyze program arguments
+            var cla = new CommandLineApplication(throwOnUnexpectedArg: false);
+
+            var arg = cla.Argument(coreUpdaterStartingArgument, "CoreUpdater is starting");
+            var pid = cla.Option("--pid", "Process ID of target application", CommandOptionType.SingleValue);
+            var name = cla.Option("-n|--name", "Application name. Default is assembly name", CommandOptionType.SingleValue);
+            var srcDir = cla.Option("-s|--src", "Source directory (new version directory)", CommandOptionType.SingleValue);
+            var dstDir = cla.Option("-d|--dst", "Destination directory (current version direcroty)", CommandOptionType.SingleValue);
+
+            // Default behavior
+            cla.OnExecute(() =>
+            {
+                if (CanUpdate(args))
+                {
+                    Update(pid.Value(), srcDir.Value(), dstDir.Value());
+                }
+                return 0;
+            });
+
+            // Execution
+            cla.Execute(args);
+        }
         /// <summary>
         /// Update the application.
         /// This method implements the update after the application closes.
@@ -47,7 +79,7 @@ namespace CoreUpdater.Updates
         /// <param name="srcDir"></param>
         /// <param name="dstDir"></param>
         /// <exception cref="TimeoutException"></exception>
-        public void Update(string pid, string srcDir, string dstDir)
+        void Update(string pid, string srcDir, string dstDir)
         {
             if (pid != null)
             {
@@ -66,6 +98,101 @@ namespace CoreUpdater.Updates
 
             // Copy file to current dir fron new dir.
             CopyFiles(srcDir, dstDir, newAppInfo);
+        }
+
+        public void RestartApplication(string[] args, bool result = true)
+        {
+            // Analyze program arguments
+            var cla = new CommandLineApplication(throwOnUnexpectedArg: false);
+
+            var arg = cla.Argument(coreUpdaterStartingArgument, "CoreUpdater is starting");
+            var pid = cla.Option("--pid", "Process ID of target application", CommandOptionType.SingleValue);
+            var name = cla.Option("-n|--name", "Application name. Default is assembly name", CommandOptionType.SingleValue);
+            var srcDir = cla.Option("-s|--src", "Source directory (new version directory)", CommandOptionType.SingleValue);
+            var dstDir = cla.Option("-d|--dst", "Destination directory (current version direcroty)", CommandOptionType.SingleValue);
+
+            // Default behavior
+            cla.OnExecute(() =>
+            {
+                // Restart application
+                Process.Start($@"{dstDir.Value()}\{name.Value()}", $"{coreUpdaterCompletedArgument} -r {(result ? UpdateCompletedType.Success : UpdateCompletedType.Failure)}");
+                return 0;
+            });
+
+            // Execution
+            cla.Execute(args);
+        }
+
+        public void StartUpdater(CoreUpdaterInfo coreUpdaterInfo)
+        {
+            var assemblyName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
+            var srcDir = Path.GetFullPath(coreUpdaterInfo.GetNewVersionDir());
+            var dstDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var processId = Process.GetCurrentProcess().Id.ToString();
+
+            StartUpdater(assemblyName, srcDir, dstDir, processId);
+        }
+
+        void StartUpdater(string assemblyName, string srcDir, string dstDir, string processId)
+        {
+            Process.Start($@"{srcDir}\{assemblyName}", $"{coreUpdaterStartingArgument} --pid={processId} -n={assemblyName} -s={srcDir} -d={dstDir}");
+        }
+
+        public bool CanUpdate(string[] args)
+        {
+            // Analyze program arguments
+            var cla = new CommandLineApplication(throwOnUnexpectedArg: false);
+
+            var arg = cla.Argument(coreUpdaterStartingArgument, "CoreUpdater is starting");
+            var pid = cla.Option("--pid", "Process ID of target application", CommandOptionType.SingleValue);
+            var name = cla.Option("-n|--name", "Application name. Default is assembly name", CommandOptionType.SingleValue);
+            var srcDir = cla.Option("-s|--src", "Source directory (new version directory)", CommandOptionType.SingleValue);
+            var dstDir = cla.Option("-d|--dst", "Destination directory (current version direcroty)", CommandOptionType.SingleValue);
+
+            cla.OnExecute(() =>
+             {
+                 if (arg.Value != coreUpdaterStartingArgument || pid.HasValue() == false || name.HasValue() == false || srcDir.HasValue() == false || dstDir.HasValue() == false)
+                 {
+                     return 1;
+                 }
+                 else
+                 {
+                     return 0;
+                 }
+             });
+
+            // Execution
+            return cla.Execute(args) == 0 ? true : false;
+        }
+
+        public UpdateCompletedType Completed(string[] args)
+        {
+            // Analyze program arguments
+            var cla = new CommandLineApplication(throwOnUnexpectedArg: false);
+
+            var arg = cla.Argument(coreUpdaterCompletedArgument, "Update is completed by CoreUpdater");
+            var result = cla.Option("-r|--result", "Update results", CommandOptionType.SingleValue);
+
+            // Default behavior
+            cla.OnExecute(() =>
+            {
+                if (arg.Value != coreUpdaterCompletedArgument || result.HasValue() == false)
+                {
+                    return (int)UpdateCompletedType.None;
+                }
+
+                if (result.Value() == UpdateCompletedType.Success.ToString())
+                {
+                    return (int)UpdateCompletedType.Success;
+                }
+                else
+                {
+                    return (int)UpdateCompletedType.Failure;
+                }
+            });
+
+            // Execution
+            return (UpdateCompletedType)Enum.ToObject(typeof(UpdateCompletedType), cla.Execute(args));
         }
 
         void WaitForExit(int pid)
