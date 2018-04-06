@@ -45,12 +45,19 @@ namespace CoreUpdater
             var appInfo = await DownloadJsonAsync(jsonUrl);
 
             // Deserialize
-            return CoreUpdaterInfo.ReadString(appInfo);
+            CoreUpdaterInfo = CoreUpdaterInfo.ReadString(appInfo);
+
+            return CoreUpdaterInfo;
         }
 
         public override async Task<CoreUpdaterInfo> PrepareForUpdatesAsync(string outputDir)
         {
-            return await PrepareForUpdatesAsync(outputDir, AppName + ".zip");
+            return await PrepareForUpdatesAsync(outputDir, CoreUpdaterInfo.Name + ".zip");
+        }
+
+        public override async Task<CoreUpdaterInfo> PrepareForUpdatesAsync(string outputDir, CoreUpdaterInfo coreUpdaterInfo)
+        {
+            return await PrepareForUpdatesAsync(outputDir, coreUpdaterInfo.Name + ".zip");
         }
 
         /// <summary>
@@ -85,18 +92,23 @@ namespace CoreUpdater
             return await response.Content.ReadAsStringAsync();
         }
 
-        async Task<bool> DownloadZipAsync(string url, string outputPath)
+        async Task DownloadZipAsync(string url, string outputPath)
         {
             var response = await client.GetAsync(url);
 
-            using (FileStream fs = new FileStream(outputPath, FileMode.Create, FileAccess.Write))
-            using (var stream = await response.Content.ReadAsStreamAsync())
+            if (response.IsSuccessStatusCode)
             {
-                stream.CopyTo(fs);
-                fs.Flush();
+                using (FileStream fs = new FileStream(outputPath, FileMode.Create, FileAccess.Write))
+                using (var stream = await response.Content.ReadAsStreamAsync())
+                {
+                    stream.CopyTo(fs);
+                    fs.Flush();
+                }
             }
-
-            return true;
+            else
+            {
+                throw new FileNotFoundException();
+            }
         }
 
         /// <summary>

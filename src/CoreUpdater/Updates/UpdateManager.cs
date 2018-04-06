@@ -11,14 +11,18 @@ using Microsoft.Extensions.CommandLineUtils;
 
 namespace CoreUpdater
 {
+    public enum ExecutionType
+    {
+        Default,
+        DotNetCore,
+    }
+
     abstract public class UpdateManager : IUpdateManager
     {
-        public string AppName { get; set; }
         public string CoreUpdaterInfoFileName { get; set; } = "CoreUpdaterInfo.json";
+        public CoreUpdaterInfo CoreUpdaterInfo { get; set; }
 
         protected ILogger logger;
-
-        protected bool preRelease = false;
 
         readonly string coreUpdaterStartingArgument = "CoreUpdaterStarting";
         readonly string coreUpdaterCompletedArgument = "CoreUpdaterCompleted";
@@ -30,11 +34,10 @@ namespace CoreUpdater
             {
                 CoreUpdaterInfoFileName = coreUpdaterInfoFileName;
             }
-
-            AppName = Assembly.GetExecutingAssembly().GetName().Name;
         }
 
         public abstract Task<CoreUpdaterInfo> CheckForUpdatesAsync();
+        public abstract Task<CoreUpdaterInfo> PrepareForUpdatesAsync(string outputDir, CoreUpdaterInfo coreUpdaterInfo);
         public abstract Task<CoreUpdaterInfo> PrepareForUpdatesAsync(string outputDir, string zipFileName);
 
         /// <summary>
@@ -100,7 +103,7 @@ namespace CoreUpdater
             CopyFiles(srcDir, dstDir, newAppInfo);
         }
 
-        public void RestartApplication(string[] args, bool result = true)
+        public void RestartApplication(string[] args, ExecutionType executionType = ExecutionType.Default, bool result = true)
         {
             // Analyze program arguments
             var cla = new CommandLineApplication(throwOnUnexpectedArg: false);
@@ -114,8 +117,12 @@ namespace CoreUpdater
             // Default behavior
             cla.OnExecute(() =>
             {
+                var fileName = $@"{dstDir.Value()}\{name.Value()}";
+                var arguments = $"{coreUpdaterCompletedArgument} -r {(result ? UpdateCompletedType.Success : UpdateCompletedType.Failure)}";
+
                 // Restart application
-                Process.Start($@"{dstDir.Value()}\{name.Value()}", $"{coreUpdaterCompletedArgument} -r {(result ? UpdateCompletedType.Success : UpdateCompletedType.Failure)}");
+                StartProcess(fileName, arguments, executionType);
+
                 return 0;
             });
 
@@ -123,19 +130,42 @@ namespace CoreUpdater
             cla.Execute(args);
         }
 
-        public void StartUpdater(CoreUpdaterInfo coreUpdaterInfo)
+        public void StartUpdater(ExecutionType executonType = ExecutionType.Default)
         {
-            var assemblyName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
+            StartUpdater(CoreUpdaterInfo, executonType);
+        }
+
+        public void StartUpdater(CoreUpdaterInfo coreUpdaterInfo, ExecutionType executonType = ExecutionType.Default)
+        {
+            var assemblyName = Path.GetFileName(Assembly.GetEntryAssembly().Location);
             var srcDir = Path.GetFullPath(coreUpdaterInfo.GetNewVersionDir());
             var dstDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             var processId = Process.GetCurrentProcess().Id.ToString();
 
-            StartUpdater(assemblyName, srcDir, dstDir, processId);
+            StartUpdater(assemblyName, srcDir, dstDir, processId, executonType);
         }
 
-        void StartUpdater(string assemblyName, string srcDir, string dstDir, string processId)
+        void StartUpdater(string assemblyName, string srcDir, string dstDir, string processId, ExecutionType executionType)
         {
-            Process.Start($@"{srcDir}\{assemblyName}", $"{coreUpdaterStartingArgument} --pid={processId} -n={assemblyName} -s={srcDir} -d={dstDir}");
+            var fileName = $@"{srcDir}\{assemblyName}";
+            var arguments = $"{coreUpdaterStartingArgument} --pid={processId} -n={assemblyName} -s={srcDir} -d={dstDir}";
+
+            Console.WriteLine("AssemblyName " + assemblyName);
+
+            StartProcess(fileName, arguments, executionType);
+        }
+
+        void StartProcess(string fileName, string arguments, ExecutionType executionType)
+        {
+            switch (executionType)
+            {
+                case ExecutionType.DotNetCore:
+                    Process.Start("dotnet", $"{fileName} {arguments}");
+                    break;
+                default:
+                    Process.Start(fileName, arguments);
+                    break;
+            }
         }
 
         public bool CanUpdate(string[] args)
@@ -199,7 +229,17 @@ namespace CoreUpdater
         {
             try
             {
-                var process = Process.GetProcessById(pid);
+                Process process;
+
+                try
+                {
+                    process = Process.GetProcessById(pid);
+                }
+                catch (ArgumentException)
+                {
+                    return;
+                }
+
                 process.WaitForExit(10000);
                 if (process.HasExited == false)
                 {

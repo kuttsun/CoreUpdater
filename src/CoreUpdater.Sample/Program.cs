@@ -12,7 +12,10 @@ namespace CoreUpdater.Sample
     {
         static async Task Main(string[] args)
         {
-            IUpdateManager mgr = new GitHub("https://github");
+            Console.WriteLine("--------------------");
+            Console.WriteLine("Version." + Assembly.GetExecutingAssembly().GetName().Version);
+
+            IUpdateManager mgr = new GitHub("https://github.com/kuttsun/Test");
             // UpdateManager mgr = new Storage(@"C:\foo");
 
             if (mgr.CanUpdate(args))
@@ -23,7 +26,7 @@ namespace CoreUpdater.Sample
                 mgr.Update(args);
 
                 // 7. Restart application
-                mgr.RestartApplication(args);
+                mgr.RestartApplication(args, ExecutionType.DotNetCore);
 
                 // 8. Close application
                 return;
@@ -52,21 +55,22 @@ namespace CoreUpdater.Sample
                 Console.WriteLine("New version found.");
 
                 // 3. Download and extract
-                var coreUpdaterInfo2 = await mgr.PrepareForUpdatesAsync(Directory.GetCurrentDirectory());
+                await mgr.PrepareForUpdatesAsync(Directory.GetCurrentDirectory());
 
-                // 4. Start updater (The updater is new version application)
-                mgr.StartUpdater(coreUpdaterInfo2);
+                // 4. Start updater (The updater is your new version application)
+                mgr.StartUpdater(ExecutionType.DotNetCore);
 
                 // 5. Close application
                 return;
             }
             else
             {
-                Console.WriteLine("Hello World!");
-                Console.WriteLine("Version." + Assembly.GetExecutingAssembly().GetName().Version);
-                Console.ReadKey();
-                return;
+                Console.WriteLine("Not found.");
             }
+
+            Console.WriteLine("Hello World!");
+            Console.ReadKey();
+            return;
         }
     }
 }
