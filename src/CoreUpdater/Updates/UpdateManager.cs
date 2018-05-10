@@ -86,21 +86,25 @@ namespace CoreUpdater
         {
             if (pid != null)
             {
-                logger?.LogInformation($"Wait for the target application ({pid}) to finish...");
+                logger?.LogInformation($"Wait for the target application (pid={pid}) to finish...");
                 WaitForExit(Convert.ToInt32(pid));
             }
 
-            logger?.LogInformation($"Start updates.{Process.GetCurrentProcess().Id}");
+            logger?.LogInformation($"Start updates. (pid={Process.GetCurrentProcess().Id})");
 
             // Start updates.
             var currentAppInfo = CoreUpdaterInfo.ReadFile($@"{dstDir}\{CoreUpdaterInfoFileName}");
             var newAppInfo = CoreUpdaterInfo.ReadFile($@"{srcDir}\{CoreUpdaterInfoFileName}");
 
             // Delete file in current dir.
+            logger?.LogInformation($"Delete files...");
             DeleteFiles(dstDir, currentAppInfo);
 
             // Copy file to current dir fron new dir.
+            logger?.LogInformation($"Copy files...");
             CopyFiles(srcDir, dstDir, newAppInfo);
+
+            logger?.LogInformation($"Complete.");
         }
 
         public void RestartApplication(string[] args, ExecutionType executionType = ExecutionType.Default, bool result = true)
@@ -121,6 +125,7 @@ namespace CoreUpdater
                 var arguments = $"{coreUpdaterCompletedArgument} -r {(result ? UpdateCompletedType.Success : UpdateCompletedType.Failure)}";
 
                 // Restart application
+                logger?.LogInformation($"Restart application. ({fileName})");
                 StartProcess(fileName, arguments, executionType);
 
                 return 0;
@@ -150,8 +155,7 @@ namespace CoreUpdater
             var fileName = $@"{srcDir}\{assemblyName}";
             var arguments = $"{coreUpdaterStartingArgument} --pid={processId} -n={assemblyName} -s={srcDir} -d={dstDir}";
 
-            Console.WriteLine("AssemblyName " + assemblyName);
-
+            logger?.LogInformation($"Start updater. ({fileName})");
             StartProcess(fileName, arguments, executionType);
         }
 
